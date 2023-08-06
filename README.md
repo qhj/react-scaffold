@@ -1,1 +1,1 @@
-# react-scaffold
+# react-template

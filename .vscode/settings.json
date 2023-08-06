@@ -1,0 +1,7 @@
+{
+  "eslint.validate": ["json"],
+  "eslint.experimental.useFlatConfig": true,
+  "eslint.options": {
+    "overrideConfigFile": "build/config/eslint.js"
+  }
+}

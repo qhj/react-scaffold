@@ -1,0 +1,13 @@
+{
+  "include": [".", "types.d.ts"],
+  "compilerOptions": {
+    "outDir": "../build",
+    "sourceMap": false,
+    "moduleResolution": "Node16",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "target": "ES2015",
+    "strict": true
+  }
+}
