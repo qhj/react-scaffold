@@ -4,9 +4,7 @@ import normalizePath from 'normalize-path'
 
 type Return<T> = T extends null | undefined
   ? []
-  : T extends Array<any>
-  ? T
-  : T extends Iterable<infer E> | ArrayLike<infer E>
+  : T extends Array<infer E> | Iterable<infer E> | ArrayLike<infer E>
   ? E[]
   : [T]
 
@@ -15,18 +13,24 @@ function isObject(value: any) {
   return value !== null && (type === 'object' || type === 'function')
 }
 
-function isIterable<T>(value: any): value is Iterable<T> {
+function isIterable(value: any): value is Iterable<unknown> {
   return (
     isObject(value) &&
-    typeof (value as Iterable<T>)[Symbol.iterator] === 'function'
+    typeof (value as Iterable<unknown>)[Symbol.iterator] === 'function'
   )
 }
 
-function isArrayLike<T>(value: any): value is ArrayLike<T> {
-  return isObject(value) && typeof (value as Array<T>).length === 'number'
+function isArrayLike(value: any): value is ArrayLike<unknown> {
+  if (!isObject(value)) return false
+  const v = value as ArrayLike<unknown>
+  return (
+    v.hasOwnProperty('length') &&
+    typeof v.length === 'number' &&
+    (v.length === 0 || (v.length > 0 && v.length - 1 in v))
+  )
 }
 
-export function toBeArray<T>(value: T): Return<T> {
+export function toArray<T>(value: T): Return<T> {
   if (value === null || value === undefined) return [] as Return<T>
 
   if (Array.isArray(value)) return value as Return<T>
@@ -39,20 +43,20 @@ export function toBeArray<T>(value: T): Return<T> {
 }
 
 export function parseFiles(files: string | string[], context: string) {
-  return toBeArray(files).map((file) => normalizePath(resolve(context, file)))
+  return toArray(files).map((file) => normalizePath(resolve(context, file)))
 }
 
 export function parseFoldersToGlobs(
   patterns: string | string[],
   extensions: string | string[] = [],
 ) {
-  const extensionsList = toBeArray(extensions)
+  const extensionsList = toArray(extensions)
   const [prefix, postfix] = extensionsList.length > 1 ? ['{', '}'] : ['', '']
   const extensionsGlob = extensionsList
     .map((extension) => extension.replace(/^\./u, ''))
     .join(',')
 
-  return toBeArray(patterns).map((pattern) => {
+  return toArray(patterns).map((pattern) => {
     try {
       // The patterns are absolute because they are prepended with the context.
       const stats = statSync(pattern)

@@ -45,7 +45,8 @@ const PluginOptionsSchema = z
     emitWarning: z.boolean(),
     eslintPath: z.string(),
     exclude: z.union([z.string(), z.string().array()]),
-    extensions: z.union([z.string(), z.string().array()]),
+    // extensions: z.union([z.string(), z.string().array()]),
+    extensions: z.string().array(),
     failOnError: z.boolean(),
     failOnWarning: z.boolean(),
     files: z.union([z.string(), z.string().array()]),
@@ -66,10 +67,10 @@ export type Options = PluginOptions & ESLint.Options
 export function getOptions<T>(
   pluginOptions: T & ExactPartial<Options, T>,
 ): PluginOptions {
-  const defaults = {
+  const defaults: Options = {
     cache: true,
     cacheLocation: '.cache/eslint-webpack-plugin',
-    extensions: 'js',
+    extensions: ['js'],
     emitError: true,
     emitWarning: true,
     failOnError: true,
@@ -86,6 +87,8 @@ export function getOptions<T>(
   return options
 }
 
+getOptions({ context: '' })
+
 export function getESLintOptions(loaderOptions: Options): ESLint.Options {
   const eslintOptions = { ...loaderOptions }
 
@@ -93,6 +96,7 @@ export function getESLintOptions(loaderOptions: Options): ESLint.Options {
   const { fix, extensions, ...eslintOnlyOptions } = PluginOptionsSchema.shape
 
   for (const option in eslintOnlyOptions) {
+    // https://stackoverflow.com/questions/57086672/element-implicitly-has-an-any-type-because-expression-of-type-string-cant-b
     delete eslintOptions[option as keyof typeof eslintOptions]
   }
 

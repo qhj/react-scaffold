@@ -5,7 +5,7 @@ import { WebpackError } from 'webpack'
 
 import { getOptions } from './options'
 import type { ExactPartial, Options, PluginOptions } from './options'
-import { toBeArray, parseFiles, parseFoldersToGlobs } from './utils'
+import { toArray, parseFiles, parseFoldersToGlobs } from './utils'
 
 import { linter } from './linter'
 import type { Linter, Reporter } from './linter'
@@ -34,7 +34,7 @@ class ESLintWebpackPlugin<T> {
       this.options.exclude || [],
       this.getContext(compiler),
     )
-    const resourceQueries = toBeArray(this.options.resourceQueryExclude || [])
+    const resourceQueries = toArray(this.options.resourceQueryExclude || [])
     const excludedResourceQueries = resourceQueries.map((item) =>
       item instanceof RegExp ? item : new RegExp(item),
     )
@@ -43,7 +43,7 @@ class ESLintWebpackPlugin<T> {
       ...this.options,
       exclude: excludedFiles,
       resourceQueryExclude: excludedResourceQueries,
-      extensions: toBeArray(this.options.extensions),
+      extensions: toArray(this.options.extensions),
       files: parseFiles(this.options.files || '', this.getContext(compiler)),
     }
 

@@ -1,14 +1,17 @@
 import path from 'node:path'
 import webpack from 'webpack'
-// import ESLintWebpackPlugin from 'eslint-webpack-plugin'
 import ESLintWebpackPlugin from '../tools/eslint-webpack-plugin'
 import HtmlPlugin from 'html-webpack-plugin'
 import ReactRefreshPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 import 'webpack-dev-server'
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 const cssLoaders = () => {
   return [
-    'style-loader',
+    isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
     'css-loader',
     {
       loader: 'postcss-loader',
@@ -24,12 +27,14 @@ const cssLoaders = () => {
 const projectRoot = path.resolve(__dirname, '../..')
 
 const config: webpack.Configuration = {
-  mode: 'development',
+  mode: isProduction ? 'production' : 'development',
   entry: './src/main.tsx', // Path starting with a name wiil be resolved within node_modules
   output: {
-    filename: '[name].js',
-    chunkFilename: '[name].chunk.js',
-    assetModuleFilename: 'assets/[hash][ext]',
+    path: path.resolve(projectRoot, 'build/dist'),
+    filename: `[name]${isProduction ? '.[contenthash]' : ''}.js`,
+    chunkFilename: `[name]${isProduction ? '.[contenthash]' : ''}.chunk.js`,
+    assetModuleFilename: 'assets/[hash][ext][query]',
+    clean: true,
   },
   module: {
     rules: [
@@ -61,7 +66,7 @@ const config: webpack.Configuration = {
           presets: [['react-app', { runtime: 'automatic' }]],
           cacheDirectory: '.cache/babel-loader/',
           cacheCompression: false,
-          plugins: ['react-refresh/babel'],
+          plugins: [!isProduction && 'react-refresh/babel'].filter(Boolean),
         },
       },
       // images
@@ -90,21 +95,29 @@ const config: webpack.Configuration = {
     new ESLintWebpackPlugin({
       context: projectRoot,
       extensions: ['ts', 'tsx'],
-      emitWarning: true,
       failOnWarning: true,
-      // cacheLocation: path.join(projectRoot, '.cache/eslint-webpack-plugin'),
     }),
     new HtmlPlugin({
       template: path.join(projectRoot, 'src/index.html'),
     }),
-    new ReactRefreshPlugin(),
-  ],
-  devtool: 'eval-cheap-module-source-map',
+    !isProduction && new ReactRefreshPlugin(),
+    isProduction &&
+      new MiniCssExtractPlugin({
+        filename: '[name].[contenthash].css',
+        chunkFilename: '[name].[contenthash].chunk.css',
+      }),
+  ].filter(Boolean),
+  devtool: isProduction ? false : 'eval-cheap-module-source-map',
   optimization: {
     splitChunks: {
       chunks: 'all',
     },
     runtimeChunk: 'multiple',
+    minimize: isProduction,
+    minimizer: [
+      new CssMinimizerPlugin(),
+      // new TerserPlugin(),
+    ],
   },
   devServer: {
     host: 'localhost',

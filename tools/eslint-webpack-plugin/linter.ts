@@ -2,7 +2,7 @@ import { dirname, isAbsolute, join } from 'node:path'
 
 import { ESLintError } from './eslint-error'
 import { getESLint } from './get-eslint'
-import { toBeArray } from './utils'
+import { toArray } from './utils'
 import { ESLint } from 'eslint'
 import type { Options, FormatterFunction } from './options'
 import { Compilation, Compiler } from 'webpack'
@@ -49,7 +49,7 @@ export function linter(
   }
 
   function lint(files: string | string[]) {
-    for (const file of toBeArray(files)) {
+    for (const file of toArray(files)) {
       delete crossRunResultStorage[file]
     }
     rawResults.push(
